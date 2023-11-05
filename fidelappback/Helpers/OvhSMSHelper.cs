@@ -7,7 +7,6 @@ namespace fidelappback.Helpers;
 
 public class OvhSMSHelper
 {
-    private static readonly HttpClient client = new HttpClient();
     private readonly string _AK = "a844460e174f7760";
     private readonly string _AS = "9d2461873ae580cb6b4bd2335e70035c";
     private readonly string _CK = "21c1745966fcaafea92a549000d4742d";
@@ -49,6 +48,8 @@ public class OvhSMSHelper
     {
         try 
         {
+            HttpClient client = new HttpClient();
+
             var query = urlAPI;
             var unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
             var timestamp = unixTimestamp.ToString();
@@ -60,6 +61,9 @@ public class OvhSMSHelper
             client.DefaultRequestHeaders.Add("X-Ovh-Consumer", _CK);
             client.DefaultRequestHeaders.Add("X-Ovh-Signature", signature);
             client.DefaultRequestHeaders.Add("X-Ovh-Timestamp", timestamp);
+
+            // display timestamp in logs
+            Console.WriteLine("timestamp: " + timestamp);
 
             // Set content
             HttpContent content = new StringContent(body, Encoding.UTF8, "application/json");
