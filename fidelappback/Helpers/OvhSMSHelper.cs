@@ -7,9 +7,9 @@ namespace fidelappback.Helpers;
 
 public class OvhSMSHelper
 {
-    private readonly string _AK = "a844460e174f7760";
-    private readonly string _AS = "9d2461873ae580cb6b4bd2335e70035c";
-    private readonly string _CK = "21c1745966fcaafea92a549000d4742d";
+    private readonly string _AK = "a673cec79137f674";
+    private readonly string _AS = "23e0261cc69ef0c82212ed43af1c6a47";
+    private readonly string _CK = "62304a8b0571e2716c81fd771264c3b0";
     private readonly string _baseurl = "https://eu.api.ovh.com/1.0/sms/";
 
     public async Task<Status> SendSMS(string? message, Profil? profil)
@@ -68,7 +68,19 @@ public class OvhSMSHelper
             // Set content
             HttpContent content = new StringContent(body, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync(urlAPI, content);
+            HttpResponseMessage response;
+            if(method == "POST")
+            {
+                response = await client.PostAsync(urlAPI, content);
+            }
+            else if(method == "GET")
+            {
+                response = await client.GetAsync(urlAPI);
+            }
+            else
+            {
+                return Status.error;
+            }
             var answer = await response.Content.ReadAsStringAsync();
   
             if (response.IsSuccessStatusCode)
