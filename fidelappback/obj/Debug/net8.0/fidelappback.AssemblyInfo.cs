@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("fidelappback")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0f068435d7ac9a65cc0463b78fc8b840318efb26")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
 [assembly: System.Reflection.AssemblyProductAttribute("fidelappback")]
 [assembly: System.Reflection.AssemblyTitleAttribute("fidelappback")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,6 +1,6 @@
 namespace fidelappback.Models;
 public record Profil
 {
-    public string PhoneNumber { get; set; }
-    public string Name { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string? Name { get; set; }
 }
