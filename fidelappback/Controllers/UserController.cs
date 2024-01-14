@@ -1,5 +1,8 @@
 using fidelappback.Database;
 using fidelappback.Models;
+using fidelappback.Requetes.User.Request;
+using fidelappback.Requetes.User.Response;
+using fidelappback.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,48 +13,45 @@ namespace fidelappback.controllers;
 
 public class UserController : ControllerBase
 {
-
-    // get db context
-    private readonly FidelappDbContext _context;
-    // get db context from constructor
-    public UserController(FidelappDbContext context)
+    private readonly IUserService _userService;
+    public UserController(IUserService userService)
     {
-        _context = context;
+        _userService = userService;
     }
 
-    // connection endpoint, returns a jwt token
     [HttpPost("login")]
-    public IActionResult Login([FromBody] User user)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        // check if user exists
-        var userExists = _context.User.Any(u => u.PhoneNumber == user.PhoneNumber && u.Password == user.Password);
-        if (!userExists)
+        var userNewGuid = await _userService.Login(request.Email, request.Password);
+        if (userNewGuid == null)
         {
-            return BadRequest("User doesn't exist");
+            return NotFound(new LoginResponse());
         }
-        // get user from db
-        var userFromDb = _context.User.FirstOrDefault(u => u.PhoneNumber == user.PhoneNumber && u.Password == user.Password);
-        // update last connection
-        userFromDb.LastConnection = DateTime.Now;
-        // generate a new guid
-        userFromDb.Guid = Guid.NewGuid().ToString();
-        _context.SaveChanges();
-        // return jwt token
-        return Ok(userFromDb.Guid);
+        return Ok(new LoginResponse { Guid = (Guid)userNewGuid });
     }
 
-    // create a user
+    // create a user, the user need to login after this step
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] User user)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        // check if user already exists
-        var userExists = await _context.User.AnyAsync(u => u.PhoneNumber == user.PhoneNumber || u.Email == user.Email);
-        if (userExists)
+        var response = await _userService.RegisterUser(request);
+        if(response.IsEmailAlreadyUsed || response.IsPhoneNumberAlreadyUsed)
         {
-            return BadRequest("User already exists");
+            return BadRequest(response);
         }
-        _context.User.Add(user);
-        await _context.SaveChangesAsync();
-        return Ok();
+        return Ok(response);
+    }
+
+    // update user 
+    [HttpPost("updatepassword")]
+    public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequest request)
+    {
+        var response = await _userService.UpdatePassword(request);
+
+        if (response.IsLoginCorrect && !response.IsPasswordToWeak)
+        {
+            return Ok(response);
+        }
+        return NotFound(response);
     }
 }

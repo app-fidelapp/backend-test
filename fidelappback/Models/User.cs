@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using fidelappback.Requetes.User.Request;
 
 namespace fidelappback.Models;
 public class User
@@ -29,6 +30,24 @@ public class User
     
     public DateTime? LastConnection { get; set; }
 
-    public string? Guid { get; set; }
+    // mobile guid
+    public Guid? Guid { get; set; }
 
+    public bool IsActivated { get; set; } = true;
+
+
+    // implicit conversion from RegisterRequest to user
+    public static explicit operator User(RegisterRequest request)
+    {
+        return new User
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            PhoneNumber = request.PhoneNumber,
+            Email = request.Email,
+            Password = request.Password,
+            ShopName = request.ShopName,
+            IsActivated = true
+        };
+    }
 }
