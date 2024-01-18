@@ -7,5 +7,6 @@ public static class ServiceInjection
     public static void AddServices(this IServiceCollection services)
     {
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IClientService, ClientService>();
     }
 }

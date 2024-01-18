@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using fidelappback.Requetes.User.Request;
 
 namespace fidelappback.Models;
-public class User
+public record User
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -31,7 +31,7 @@ public class User
     public DateTime? LastConnection { get; set; }
 
     // mobile guid
-    public Guid? Guid { get; set; }
+    public String? ConnectionString { get; set; }
 
     public bool IsActivated { get; set; } = true;
 

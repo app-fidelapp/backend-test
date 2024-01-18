@@ -1,10 +1,7 @@
-using fidelappback.Database;
-using fidelappback.Models;
 using fidelappback.Requetes.User.Request;
 using fidelappback.Requetes.User.Response;
 using fidelappback.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace fidelappback.controllers;
 
@@ -22,19 +19,19 @@ public class UserController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var userNewGuid = await _userService.Login(request.Email, request.Password);
-        if (userNewGuid == null)
+        var connectionString = await _userService.LoginAsync(request.Email, request.Password);
+        if (connectionString == null)
         {
             return NotFound(new LoginResponse());
         }
-        return Ok(new LoginResponse { Guid = (Guid)userNewGuid });
+        return Ok(new LoginResponse { ConnectionString = connectionString });
     }
 
     // create a user, the user need to login after this step
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var response = await _userService.RegisterUser(request);
+        var response = await _userService.RegisterUserAsync(request);
         if(response.IsEmailAlreadyUsed || response.IsPhoneNumberAlreadyUsed)
         {
             return BadRequest(response);
@@ -42,16 +39,31 @@ public class UserController : ControllerBase
         return Ok(response);
     }
 
-    // update user 
+    // update user password
     [HttpPost("updatepassword")]
     public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequest request)
     {
-        var response = await _userService.UpdatePassword(request);
+        var response = await _userService.UpdatePasswordAsync(request);
 
         if (response.IsLoginCorrect && !response.IsPasswordToWeak)
         {
             return Ok(response);
         }
         return NotFound(response);
+    }
+
+    // update user data
+    [HttpPost("updateuser")]
+    public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request)
+    {
+        var user = await _userService.IsAuthorizedAsync(request);
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        var response = await _userService.UpdateUserAsync(user, request);
+
+        return Ok(response);
     }
 }

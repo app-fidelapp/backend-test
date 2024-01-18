@@ -1,7 +1,7 @@
 namespace fidelappback.Requetes.User.Response
 {
-    public record LoginResponse
+    public record LoginResponse : BaseResponse
     {
-        Guid Guid { get; set; }
+        public string? ConnectionString { get; set; }
     }
 }

@@ -25,7 +25,7 @@ public class FidelappDbContext : DbContext
             .IsUnique();
 
         modelBuilder.Entity<User>()
-            .HasIndex(u => u.Guid)
+            .HasIndex(u => u.ConnectionString)
             .IsUnique();
     }
 }
