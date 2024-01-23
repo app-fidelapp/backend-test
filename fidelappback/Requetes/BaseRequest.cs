@@ -2,8 +2,7 @@ namespace fidelappback.Requetes;
 
 public record BaseRequest
 {
-
     // fields to identify the user
-    public string? Email { get; set; }
-    public string? ConnectionString { get; set; }
+    public string? UserEmail { get; set; }
+    public string? UserConnectionString { get; set; }
 }

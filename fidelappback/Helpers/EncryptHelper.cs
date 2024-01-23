@@ -4,9 +4,9 @@ using fidelappback.Models;
 
 namespace fidelappback.Helpers;
 
-public class EncryptHelper
+public static class EncryptHelper
 {
-    public string ComputeSha1Hash(User user)
+    public static string ComputeSha1Hash(User user)
     {
         var rawData = user.Email + user.Password + user.LastConnection;
 
@@ -21,7 +21,7 @@ public class EncryptHelper
         {
             builder.Append(bytes[i].ToString("x2"));
         }
-        
+
         return builder.ToString();
     }
 }

@@ -11,5 +11,5 @@ public interface IUserService
     Task<string?> LoginAsync(string? email, string? password);
     Task<RegisterResponse> RegisterUserAsync(RegisterRequest request);
     Task<UpdatePasswordResponse> UpdatePasswordAsync(UpdatePasswordRequest request);
-    Task<UpdateUserResponse> UpdateUserAsync(UpdateUserRequest request);
+    Task<UpdateUserResponse> UpdateUserAsync(User user, UpdateUserRequest request);
 }

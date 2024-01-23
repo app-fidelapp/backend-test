@@ -30,9 +30,9 @@ public record Client
     public DateTime? BirthDate { get; set; }
 
     [Range(0, int.MaxValue)]
-    public int TotalVisits { get; set; }
+    public int TotalVisits { get; set; } = 0;
 
     [Range(0, int.MaxValue)]
-    public int TotalPoints { get; set; }
+    public int TotalPoints { get; set; } = 0;
     public bool AcceptSMS { get; set; } = true;
 }

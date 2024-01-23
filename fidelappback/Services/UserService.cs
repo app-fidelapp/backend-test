@@ -111,7 +111,7 @@ public class UserService : BaseService, IUserService
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
         user.PhoneNumber = request.PhoneNumber;
-        user.Email = request.Email;
+        user.Email = request.UserEmail;
         user.ShopName = request.ShopName;
         await _context.SaveChangesAsync();
         return new UpdateUserResponse();

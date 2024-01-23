@@ -15,9 +15,9 @@ public class BaseService
 
     public async Task<User?> IsAuthorizedAsync (BaseRequest request)
     {
-        var user = await _context.User.FirstOrDefaultAsync(u => u.Email == request.Email);
+        var user = await _context.User.FirstOrDefaultAsync(u => u.Email == request.UserEmail);
         // compare connection string from request and database
-        if (user?.ConnectionString != request.ConnectionString)
+        if (user?.ConnectionString != request.UserConnectionString)
         {
             return null;
         }
