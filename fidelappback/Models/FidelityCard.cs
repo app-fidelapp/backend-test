@@ -39,6 +39,19 @@ public record FidelityCard
         }
     }
 
+    internal int GetScore()
+    {
+        switch (Promo?.Type)
+        {
+            case PromoType.Points:
+                return Points;
+            case PromoType.Visits:
+                return Visits;
+            default:
+                return 0;
+        }
+    }
+
     private void CheckCompletion()
     {
         IsCompleted = (Promo?.Type) switch

@@ -116,9 +116,4 @@ public class UserService : BaseService, IUserService
         await _context.SaveChangesAsync();
         return new UpdateUserResponse();
     }
-
-    public new async Task<User?> IsAuthorizedAsync(BaseRequest request)
-    {
-        return await base.IsAuthorizedAsync(request);
-    }
 }

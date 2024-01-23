@@ -17,8 +17,8 @@ public class ClientController : ControllerBase
     }
 
     // register client
-    [HttpPost("register")]
-    public async Task<IActionResult> RegisterClientAsync(NewVisitClientRequest request)
+    [HttpPost("newvisitclient")]
+    public async Task<IActionResult> NewVisitClientAsync(NewVisitClientRequest request)
     {   
         var user = await _userService.IsAuthorizedAsync(request);
         if (user == null)
@@ -26,13 +26,33 @@ public class ClientController : ControllerBase
             return Unauthorized();
         }
 
-        var response = await _clientService.RegisterClientAsync(request);
+        var response = await _clientService.RegisterClientAsync(request, user);
 
         if (!response.Success)
         {
             return BadRequest(response);
         }
-        
+
+        return Ok(response);
+    }
+
+    // confirm visit client
+    [HttpPost("confirmvisitclient")]
+    public async Task<IActionResult> ConfirmVisitClientAsync(ConfirmVisitClientRequest request)
+    {
+        var user = await _userService.IsAuthorizedAsync(request);
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        var response = await _clientService.ConfirmVisitClientAsync(request, user);
+
+        if (!response.Success)
+        {
+            return BadRequest(response);
+        }
+
         return Ok(response);
     }
 }

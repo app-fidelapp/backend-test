@@ -28,6 +28,7 @@ public record Client
     public string? LastName { get; set; }
 
     public DateTime? BirthDate { get; set; }
+    public DateTime? LastVisit { get; set; }
 
     [Range(0, int.MaxValue)]
     public int TotalVisits { get; set; } = 0;

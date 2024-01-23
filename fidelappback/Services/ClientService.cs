@@ -18,7 +18,10 @@ public class ClientService : BaseService, IClientService
     public async Task<ConfirmVisitClientResponse> ConfirmVisitClientAsync(ConfirmVisitClientRequest request, User user)
     {
         // get client from data base
-        var client = _context.Client.FirstOrDefault(c => c.PhoneNumber == request.PhoneNumber && c.CountryNumber == request.CountryNumber && c.User!.Id == user.Id);
+        var client = _context.Client
+            .Include(c => c.User)
+            .FirstOrDefault(c => c.PhoneNumber == request.PhoneNumber && c.CountryNumber == request.CountryNumber && c.User!.Id == user.Id);
+        
         if (client == null)
         {
             return new ConfirmVisitClientResponse
@@ -35,7 +38,7 @@ public class ClientService : BaseService, IClientService
             card = new FidelityCard
             {
                 Client = client,
-                Promo = _promoService.GetPromoFromClientAsync(user).Result,
+                Promo = await _promoService.GetPromoFromClientAsync(user),
                 CreatedAt = DateTime.Now
             };
 
@@ -51,7 +54,7 @@ public class ClientService : BaseService, IClientService
             var newCard = new FidelityCard
             {
                 Client = client,
-                Promo = _promoService.GetPromoFromClientAsync(user).Result,
+                Promo = await _promoService.GetPromoFromClientAsync(user),
                 CreatedAt = DateTime.Now
             };
             await _context.FidelityCard.AddAsync(newCard);
@@ -60,6 +63,12 @@ public class ClientService : BaseService, IClientService
             newCard.AddScore(rest);
         }
 
+        // update client last visit
+        client.LastVisit = DateTime.Now;
+        // update client total points
+        client.TotalPoints += (int?)request.Montant ?? 0;
+        // update client total visits
+        client.TotalVisits += 1;
         // save changes
         await _context.SaveChangesAsync();
 
@@ -84,7 +93,10 @@ public class ClientService : BaseService, IClientService
             };
         }
 
-        var client = await _context.Client.Include(c => c.User).FirstOrDefaultAsync(c => c.PhoneNumber == request.PhoneNumber && c.CountryNumber == request.CountryNumber && c.User!.Id == user.Id);   
+        var client = await _context.Client
+            .Include(c => c.User)
+            .FirstOrDefaultAsync(c => c.PhoneNumber == request.PhoneNumber && c.CountryNumber == request.CountryNumber && c.User!.Id == user.Id);   
+        
         if(client == null)
         {
             var newClient = await CreateNewClientAsync(user, request.CountryNumber, request.PhoneNumber);
@@ -137,5 +149,102 @@ public class ClientService : BaseService, IClientService
             return client;
         }
         return null;
+    }
+
+    public async Task<GetClientListingResponse?> GetClientListingAsync(GetClientListingRequest request, User user)
+    {
+        
+        var query = _context.Client
+            .Include(c => c.User)
+            .Where(c => c.User!.Id == user.Id);
+
+        // search filters
+
+        if (!string.IsNullOrEmpty(request.PhoneNumber))
+        {
+            query = query.Where(c => (c.CountryNumber + c.PhoneNumber).Contains(request.PhoneNumber));
+        }
+
+        if (!string.IsNullOrEmpty(request.FirstName))
+        {
+            query = query.Where(c => c.FirstName!.Contains(request.FirstName));
+        }
+
+        if (!string.IsNullOrEmpty(request.LastName))
+        {
+            query = query.Where(c => c.LastName!.Contains(request.LastName));
+        }
+
+        // sort filters
+
+        if (request.SortByFirstName != null && request.SortByFirstName != 0)
+        {
+            query = request.SortByFirstName == 1 ? query.OrderBy(c => c.FirstName) : query.OrderByDescending(c => c.FirstName);
+        }
+
+        if (request.SortByLastName != null && request.SortByLastName != 0)
+        {
+            query = request.SortByLastName == 1 ? query.OrderBy(c => c.LastName) : query.OrderByDescending(c => c.LastName);
+        }
+
+        if (request.SortByPhoneNumber != null && request.SortByPhoneNumber != 0)
+        {
+            query = request.SortByPhoneNumber == 1 ? query.OrderBy(c => c.PhoneNumber) : query.OrderByDescending(c => c.PhoneNumber);
+        }
+
+        if (request.BirthDate != null && request.BirthDate != 0)
+        {
+            query = request.BirthDate == 1 ? query.OrderBy(c => c.BirthDate) : query.OrderByDescending(c => c.BirthDate);
+        }
+
+        if (request.SortByLastVisit != null && request.SortByLastVisit != 0)
+        {
+            query = request.SortByLastVisit == 1 ? query.OrderBy(c => c.LastVisit) : query.OrderByDescending(c => c.LastVisit);
+        }
+
+        if (request.SortByTotalScore != null && request.SortByTotalScore != 0)
+        {
+            query = request.SortByTotalScore == 1 ? query.OrderBy(c => c.TotalPoints) : query.OrderByDescending(c => c.TotalPoints);
+        }
+
+        if (request.SortByTotalVisits != null && request.SortByTotalVisits != 0)
+        {
+            query = request.SortByTotalVisits == 1 ? query.OrderBy(c => c.TotalVisits) : query.OrderByDescending(c => c.TotalVisits);
+        }
+
+        // pagination
+        var totalItems = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling((double)totalItems / request.PageSize);
+        var skip = (request.Page - 1) * request.PageSize;
+        query = query.Skip(skip).Take(request.PageSize);
+
+        // get clients
+        var clients = await query.ToListAsync();
+
+        var clientResponses = new List<ClientResponse>();
+
+        foreach (var c in clients)
+        {
+            var card = _context.FidelityCard.Include(f => f.Promo).FirstOrDefault(f => f.Client!.Id == c!.Id && f.IsCompleted == false);
+            clientResponses.Add(new ClientResponse
+            {
+                PhoneNumber = c.PhoneNumber,
+                FirstName = c.FirstName,
+                LastName = c.LastName,
+                BirthDate = c.BirthDate,
+                LastVisit = c.LastVisit,
+                CurrentScore = card != null ? card.GetScore() : 0,
+                TotalScore = c.TotalPoints,
+                TotalVisits = c.TotalVisits
+            });
+        }
+
+        return new GetClientListingResponse
+        {
+            Success = true,
+            TotalPages = totalPages,
+            TotalItems = totalItems,
+            Clients = clientResponses
+        };
     }
 }
